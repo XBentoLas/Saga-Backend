@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum DiaSemana {
+  SEGUNDA
+  TERCA
+  QUARTA
+  QUINTA
+  SEXTA
+  SABADO
+}
+
+enum Turno {
+  MATUTINO
+  VESPERTINO
+  NOTURNO
+}
+
+model Predio {
+  id_predio Int     @id @default(autoincrement())
+  nome      String  // Nome de prédio geralmente é obrigatório
+  salas     Sala[]
+
+  @@map("predio")
+}
+
+model Sala {
+  id_sala      Int           @id @default(autoincrement())
+  id_predio    Int
+  numero_sala  Int
+  capacidade   Int?
+  tipo_sala    String?
+
+  predio       Predio        @relation(fields: [id_predio], references: [id_predio])
+  horarios     HorarioSala[]
+  agendamentos Agendamento[]
+
+  @@map("sala")
+}
+
+model Curso {
+  id_curso     Int          @id @default(autoincrement())
+  nome         String
+  codigo_curso String       @unique // Códigos de curso costumam ser únicos
+  turmas       Turma[]
+  disciplinas  Disciplina[] @relation("DisciplinaCurso")
+
+  @@map("curso")
+}
+
+model Disciplina {
+  id_disciplina     Int         @id @default(autoincrement())
+  codigo_disciplina String      @unique
+  nome              String
+  cursos            Curso[]     @relation("DisciplinaCurso")
+  professores       Professor[] @relation("DisciplinaProfessor")
+
+  @@map("disciplina")
+}
+
+model Turma {
+  id_turma     Int           @id @default(autoincrement())
+  id_curso     Int
+  quantidade   Int?
+  semestre     Int
+
+  curso        Curso         @relation(fields: [id_curso], references: [id_curso])
+  agendamentos Agendamento[]
+
+  @@map("turma")
+}
+
+model Professor {
+  id_professor Int                @id @default(autoincrement())
+  nome         String
+  email        String             @unique // Essencial para login/identificação
+  disciplinas  Disciplina[]       @relation("DisciplinaProfessor")
+  horarios     HorarioProfessor[]
+  agendamentos Agendamento[]
+
+  @@map("professor")
+}
+
+model HorarioProfessor {
+  id_horario   Int        @id @default(autoincrement())
+  id_professor Int
+  dia_semana   DiaSemana
+  turno        Turno
+  hora_inicio  DateTime   @db.Time
+  hora_fim     DateTime   @db.Time
+
+  professor    Professor  @relation(fields: [id_professor], references: [id_professor])
+
+  @@map("horario_professor")
+}
+
+model HorarioSala {
+  id_horario  Int        @id @default(autoincrement())
+  id_sala     Int
+  dia_semana  DiaSemana
+  turno       Turno
+  hora_inicio DateTime   @db.Time
+  hora_fim    DateTime   @db.Time
+
+  sala        Sala       @relation(fields: [id_sala], references: [id_sala])
+
+  @@map("horario_sala")
+}
+
+model Agendamento {
+  id_agendamento Int        @id @default(autoincrement())
+  id_professor   Int
+  id_turma       Int
+  id_sala        Int
+  hora_inicio    DateTime   @db.Time
+  hora_fim       DateTime   @db.Time
+  dia_semana     DiaSemana
+
+  professor      Professor  @relation(fields: [id_professor], references: [id_professor])
+  turma          Turma      @relation(fields: [id_turma], references: [id_turma])
+  sala           Sala       @relation(fields: [id_sala], references: [id_sala])
+
+  @@map("agendamento")
+}
+
+model User {
+  id_user     Int       @id @default(autoincrement())
+  id_external Int?      @unique // Adicionado Unique
+  nome        String
+  email       String    @unique
+  // Alterado para DateTime padrão para gravar data + hora
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  is_active   Boolean   @default(true)
+
+  @@map("user")
+}
