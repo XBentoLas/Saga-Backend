@@ -22,19 +22,19 @@ enum Turno {
 }
 
 model Predio {
-  id_predio Int     @id @default(autoincrement())
-  nome      String  // Nome de prédio geralmente é obrigatório
+  id_predio Int    @id @default(autoincrement())
+  nome      String
   salas     Sala[]
 
   @@map("predio")
 }
 
 model Sala {
-  id_sala      Int           @id @default(autoincrement())
-  id_predio    Int
-  numero_sala  Int
-  capacidade   Int?
-  tipo_sala    String?
+  id_sala     Int     @id @default(autoincrement())
+  id_predio   Int
+  numero_sala Int
+  capacidade  Int?
+  tipo_sala   String?
 
   predio       Predio        @relation(fields: [id_predio], references: [id_predio])
   horarios     HorarioSala[]
@@ -64,10 +64,10 @@ model Disciplina {
 }
 
 model Turma {
-  id_turma     Int           @id @default(autoincrement())
-  id_curso     Int
-  quantidade   Int?
-  semestre     Int
+  id_turma   Int  @id @default(autoincrement())
+  id_curso   Int
+  quantidade Int?
+  semestre   Int
 
   curso        Curso         @relation(fields: [id_curso], references: [id_curso])
   agendamentos Agendamento[]
@@ -87,56 +87,55 @@ model Professor {
 }
 
 model HorarioProfessor {
-  id_horario   Int        @id @default(autoincrement())
+  id_horario   Int       @id @default(autoincrement())
   id_professor Int
   dia_semana   DiaSemana
   turno        Turno
-  hora_inicio  DateTime   @db.Time
-  hora_fim     DateTime   @db.Time
+  hora_inicio  DateTime  @db.Time
+  hora_fim     DateTime  @db.Time
 
-  professor    Professor  @relation(fields: [id_professor], references: [id_professor])
+  professor Professor @relation(fields: [id_professor], references: [id_professor])
 
   @@map("horario_professor")
 }
 
 model HorarioSala {
-  id_horario  Int        @id @default(autoincrement())
+  id_horario  Int       @id @default(autoincrement())
   id_sala     Int
   dia_semana  DiaSemana
   turno       Turno
-  hora_inicio DateTime   @db.Time
-  hora_fim    DateTime   @db.Time
+  hora_inicio DateTime  @db.Time
+  hora_fim    DateTime  @db.Time
 
-  sala        Sala       @relation(fields: [id_sala], references: [id_sala])
+  sala Sala @relation(fields: [id_sala], references: [id_sala])
 
   @@map("horario_sala")
 }
 
 model Agendamento {
-  id_agendamento Int        @id @default(autoincrement())
+  id_agendamento Int       @id @default(autoincrement())
   id_professor   Int
   id_turma       Int
   id_sala        Int
-  hora_inicio    DateTime   @db.Time
-  hora_fim       DateTime   @db.Time
+  hora_inicio    DateTime  @db.Time
+  hora_fim       DateTime  @db.Time
   dia_semana     DiaSemana
 
-  professor      Professor  @relation(fields: [id_professor], references: [id_professor])
-  turma          Turma      @relation(fields: [id_turma], references: [id_turma])
-  sala           Sala       @relation(fields: [id_sala], references: [id_sala])
+  professor Professor @relation(fields: [id_professor], references: [id_professor])
+  turma     Turma     @relation(fields: [id_turma], references: [id_turma])
+  sala      Sala      @relation(fields: [id_sala], references: [id_sala])
 
   @@map("agendamento")
 }
 
 model User {
-  id_user     Int       @id @default(autoincrement())
-  id_external Int?      @unique // Adicionado Unique
+  id_user     Int      @id @default(autoincrement())
+  id_external String?  @unique
   nome        String
-  email       String    @unique
-  // Alterado para DateTime padrão para gravar data + hora
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-  is_active   Boolean   @default(true)
+  email       String   @unique
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  is_active   Boolean  @default(true)
 
   @@map("user")
 }
