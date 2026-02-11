@@ -2,7 +2,6 @@ import { AggregateRoot } from '../../../common/domain/aggregate-root';
 import { ProfessorId } from './identifier/professor-id';
 import { DisciplinaId } from './identifier/disciplina-id';
 import { HorarioProfessor, HorarioProfessorProps } from './horario-professor';
-import { DiaSemana, Turno } from './enums';
 
 export interface ProfessorProps {
   nome: string;
@@ -45,6 +44,7 @@ export class Professor extends AggregateRoot<ProfessorProps> {
     props: {
       nome: string;
       email: string;
+      // Note que a tipagem aqui reflete os dados crus (snake_case)
       horarios?: {
         id_horario: number;
         dia_semana: string;
@@ -58,17 +58,9 @@ export class Professor extends AggregateRoot<ProfessorProps> {
     },
     id: ProfessorId,
   ): Professor {
-    // 1. Reconstrói os Horários
+    // 1. Delega a reconstrução para o método restore do filho
     const horariosDomain = (props.horarios || []).map((h) =>
-      HorarioProfessor.create(
-        {
-          diaSemana: h.dia_semana as DiaSemana,
-          turno: h.turno as Turno,
-          horaInicio: h.hora_inicio,
-          horaFim: h.hora_fim,
-        },
-        h.id_horario,
-      ),
+      HorarioProfessor.restore(h, h.id_horario),
     );
 
     // 2. Reconstrói os IDs das Disciplinas
