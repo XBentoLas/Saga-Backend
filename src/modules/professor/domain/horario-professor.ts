@@ -38,4 +38,24 @@ export class HorarioProfessor extends Entity<HorarioProfessorProps> {
   ): HorarioProfessor {
     return new HorarioProfessor(props, new Identifier(id ?? 0));
   }
+
+  public static restore(
+    props: {
+      dia_semana: string;
+      turno: string;
+      hora_inicio: Date;
+      hora_fim: Date;
+    },
+    id: number
+  ): HorarioProfessor {
+    return new HorarioProfessor(
+      {
+        diaSemana: props.dia_semana as DiaSemana,
+        turno: props.turno as Turno,
+        horaInicio: props.hora_inicio,
+        horaFim: props.hora_fim,
+      },
+      new Identifier(id)
+    );
+  }
 }
