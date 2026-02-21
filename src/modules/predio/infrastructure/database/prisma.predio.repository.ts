@@ -1,10 +1,11 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { IPredioRepository } from '../../domain/repository/predio.repository.interface';
 import { Predio } from '../../domain/predio';
 import { PredioId } from '../../domain/identifier/predio-id';
 import { DiaSemana, Turno } from '../../domain/enums';
+import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 
-// Definição do tipo de retorno do Prisma incluindo os 3 níveis
 type PredioComSalas = Prisma.PredioGetPayload<{
   include: {
     salas: {
@@ -15,18 +16,19 @@ type PredioComSalas = Prisma.PredioGetPayload<{
   };
 }>;
 
+@Injectable() // <--- CORREÇÃO 1: Adicionado Injectable
 export class PrismaPredioRepository implements IPredioRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  // <--- CORREÇÃO 2: Injetando PrismaService ao invés de PrismaClient puro
+  constructor(private readonly prisma: PrismaService) {}
 
   async save(predio: Predio): Promise<void> {
     const rawId = predio.id.toValue();
     const dataPredio = { nome: predio.nome };
 
-    // Separa salas novas das existentes para montar a query correta
     const salasNovas = predio.salas.filter((s) => s.id.toValue() === 0);
     const salasExistentes = predio.salas.filter((s) => s.id.toValue() !== 0);
+    const idsSalasAtuais = salasExistentes.map((s) => s.id.toValue());
 
-    // Helper para mapear horários (usado tanto no create quanto no update de sala)
     const mapHorariosCreate = (horarios: any[]) =>
       horarios.map((h) => ({
         dia_semana: h.diaSemana as unknown as DiaSemana,
@@ -35,55 +37,59 @@ export class PrismaPredioRepository implements IPredioRepository {
         hora_fim: h.horaFim,
       }));
 
-    await this.prisma.predio.upsert({
-      where: { id_predio: rawId !== 0 ? rawId : -1 },
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Remove salas que não existem mais no agregado
+      if (rawId !== 0) {
+        await tx.sala.deleteMany({
+          where: {
+            id_predio: rawId,
+            id_sala: { notIn: idsSalasAtuais },
+          },
+        });
+      }
 
-      // --- CRIAÇÃO (Novo Prédio) ---
-      create: {
-        ...dataPredio,
-        salas: {
-          create: predio.salas.map((sala) => ({
-            numero_sala: sala.numeroSala,
-            capacidade: sala.capacidade,
-            tipo_sala: sala.tipoSala,
-            horarios: {
-              create: mapHorariosCreate(sala.horarios),
-            },
-          })),
-        },
-      },
-
-      // --- ATUALIZAÇÃO (Prédio Existente) ---
-      update: {
-        ...dataPredio,
-        salas: {
-          // 1. Cria as salas que foram adicionadas no domínio (ID 0)
-          create: salasNovas.map((sala) => ({
-            numero_sala: sala.numeroSala,
-            capacidade: sala.capacidade,
-            tipo_sala: sala.tipoSala,
-            horarios: {
-              create: mapHorariosCreate(sala.horarios),
-            },
-          })),
-
-          // 2. Atualiza as salas que já existem (ID > 0)
-          update: salasExistentes.map((sala) => ({
-            where: { id_sala: sala.id.toValue() },
-            data: {
+      // 2. Upsert do Prédio e Salas
+      await tx.predio.upsert({
+        where: { id_predio: rawId !== 0 ? rawId : -1 },
+        create: {
+          ...dataPredio,
+          salas: {
+            create: predio.salas.map((sala) => ({
               numero_sala: sala.numeroSala,
               capacidade: sala.capacidade,
               tipo_sala: sala.tipoSala,
-              // Estratégia para Horários da Sala: DeleteMany + Create
-              // Seguro aqui pois HorarioSala não é referenciado externamente
               horarios: {
-                deleteMany: {},
                 create: mapHorariosCreate(sala.horarios),
               },
-            },
-          })),
+            })),
+          },
         },
-      },
+        update: {
+          ...dataPredio,
+          salas: {
+            create: salasNovas.map((sala) => ({
+              numero_sala: sala.numeroSala,
+              capacidade: sala.capacidade,
+              tipo_sala: sala.tipoSala,
+              horarios: {
+                create: mapHorariosCreate(sala.horarios),
+              },
+            })),
+            update: salasExistentes.map((sala) => ({
+              where: { id_sala: sala.id.toValue() },
+              data: {
+                numero_sala: sala.numeroSala,
+                capacidade: sala.capacidade,
+                tipo_sala: sala.tipoSala,
+                horarios: {
+                  deleteMany: {},
+                  create: mapHorariosCreate(sala.horarios),
+                },
+              },
+            })),
+          },
+        },
+      });
     });
   }
 
@@ -93,7 +99,7 @@ export class PrismaPredioRepository implements IPredioRepository {
       include: {
         salas: {
           include: {
-            horarios: true, // Carrega o nível 3
+            horarios: true,
           },
         },
       },
@@ -118,10 +124,6 @@ export class PrismaPredioRepository implements IPredioRepository {
   }
 
   private toDomain(prismaData: PredioComSalas): Predio {
-    // Mapeamento recursivo: Predio -> Salas -> Horarios
-
-    // O método restore do Predio espera a estrutura exata do banco
-    // Mas precisa que os tipos (como Date e Enum) estejam alinhados
     const salasMapped = prismaData.salas.map((s) => ({
       id_sala: s.id_sala,
       numero_sala: s.numero_sala,

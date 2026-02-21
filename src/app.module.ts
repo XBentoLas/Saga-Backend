@@ -8,6 +8,7 @@ import { DisciplinaModule } from './modules/disciplina/disciplina.module';
 import { CursoModule } from './modules/curso/curso.module';
 import { UserModule } from './modules/user/user.module';
 import { AgendamentoModule } from './modules/agendamento/agendamento.module';
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AgendamentoModule } from './modules/agendamento/agendamento.module';
     CursoModule,
     UserModule,
     AgendamentoModule,
+    LoggerModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],
