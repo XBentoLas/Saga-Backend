@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
-import { PrismaService } from "../../../../infrastructure/database/prisma.service"
+import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import {
   GetAllPrediosQueryOut,
   getAllPrediosInclude,

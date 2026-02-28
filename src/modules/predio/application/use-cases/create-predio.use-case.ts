@@ -34,7 +34,7 @@ export class CreatePredioUseCase {
     } catch (error) {
       this.logger.error({
         msg: 'Erro crítico ao persistir novo prédio no banco de dados',
-        err: error,
+        err: error as Error,
         nome: command.nome,
       });
       throw error;
