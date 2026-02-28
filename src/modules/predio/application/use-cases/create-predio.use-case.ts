@@ -14,12 +14,30 @@ export class CreatePredioUseCase {
   ) {}
 
   async execute(command: CreatePredioCommand): Promise<PredioOutput> {
-    this.logger.info({ msg: 'Criando novo prédio', nome: command.nome });
+    this.logger.info({
+      msg: 'Iniciando criação de novo prédio',
+      nome: command.nome,
+    });
 
     const predio = Predio.create({ nome: command.nome });
 
-    await this.predioRepository.save(predio);
+    try {
+      await this.predioRepository.save(predio);
 
-    return PredioOutput.fromDomain(predio);
+      this.logger.info({
+        msg: 'Prédio criado com sucesso',
+        id: predio.id.toValue(),
+        nome: predio.nome,
+      });
+
+      return PredioOutput.fromDomain(predio);
+    } catch (error) {
+      this.logger.error({
+        msg: 'Erro crítico ao persistir novo prédio no banco de dados',
+        err: error,
+        nome: command.nome,
+      });
+      throw error;
+    }
   }
 }

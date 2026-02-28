@@ -1,22 +1,45 @@
-import { IsDateString, IsEnum, IsNotEmpty } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsString, IsIn } from 'class-validator';
 import { AddHorarioSalaCommand } from '../../../application/dtos/command/add-horario-sala.command';
-import { DiaSemana, Turno } from '../../../domain/enums';
+
+const DIAS_VALIDOS = [
+  'SEGUNDA',
+  'TERCA',
+  'QUARTA',
+  'QUINTA',
+  'SEXTA',
+  'SABADO',
+  'DOMINGO',
+];
+const TURNOS_VALIDOS = ['MATUTINO', 'VESPERTINO', 'NOTURNO'];
 
 export class AddHorarioSalaRequest {
   @IsNotEmpty()
-  @IsEnum(DiaSemana)
-  diaSemana: DiaSemana;
+  @IsString()
+  @IsIn(DIAS_VALIDOS, {
+    message:
+      'Dia da semana inválido. Valores aceitos: ' + DIAS_VALIDOS.join(', '),
+  })
+  diaSemana: string;
 
   @IsNotEmpty()
-  @IsEnum(Turno)
-  turno: Turno;
+  @IsString()
+  @IsIn(TURNOS_VALIDOS, {
+    message: 'Turno inválido. Valores aceitos: ' + TURNOS_VALIDOS.join(', '),
+  })
+  turno: string;
 
   @IsNotEmpty()
-  @IsDateString()
+  @IsDateString(
+    {},
+    { message: 'A hora de início deve ser uma data ISO 8601 válida.' },
+  )
   horaInicio: string;
 
   @IsNotEmpty()
-  @IsDateString()
+  @IsDateString(
+    {},
+    { message: 'A hora de fim deve ser uma data ISO 8601 válida.' },
+  )
   horaFim: string;
 
   toCommand(predioId: number, salaId: number): AddHorarioSalaCommand {

@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { IPredioRepository } from '../../domain/repository/predio.repository.interface';
 import { AddHorarioSalaCommand } from '../dtos/command/add-horario-sala.command';
 import { PredioOutput } from '../dtos/outputs/predio.output';
 import { PredioId } from '../../domain/identifier/predio-id';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import { DiaSemana, Turno } from '../../domain/enums';
 
 @Injectable()
 export class AddHorarioSalaUseCase {
@@ -32,9 +37,18 @@ export class AddHorarioSalaUseCase {
       );
     }
 
+    const diaSemanaEnum = command.diaSemana as DiaSemana;
+    const turnoEnum = command.turno as Turno;
+
+    if (!Object.values(DiaSemana).includes(diaSemanaEnum)) {
+      throw new BadRequestException(
+        `Dia da semana inválido: ${command.diaSemana}`,
+      );
+    }
+
     sala.adicionarHorario({
-      diaSemana: command.diaSemana,
-      turno: command.turno,
+      diaSemana: diaSemanaEnum,
+      turno: turnoEnum,
       horaInicio: command.horaInicio,
       horaFim: command.horaFim,
     });

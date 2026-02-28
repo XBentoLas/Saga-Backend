@@ -1,10 +1,8 @@
-import { DiaSemana, Turno } from '../../../domain/enums';
-
 export interface AddHorarioSalaCommand {
   predioId: number;
   salaId: number;
-  diaSemana: DiaSemana;
-  turno: Turno;
+  diaSemana: string;
+  turno: string;
   horaInicio: Date;
   horaFim: Date;
 }

@@ -13,12 +13,12 @@ import { AddSalaUseCase } from '../../application/use-cases/add-sala.use-case';
 import { AddHorarioSalaUseCase } from '../../application/use-cases/add-horario-sala.use-case';
 import { RemoveSalaUseCase } from '../../application/use-cases/remove-sala.use-case';
 import { RemoveHorarioSalaUseCase } from '../../application/use-cases/remove-horario-sala.use-case';
-
 import { GetAllPrediosQueryHandler } from '../../application/queries/get-all-predios.query-handler';
 import { CreatePredioRequest } from './requests/create-predio.request';
 import { AddSalaRequest } from './requests/add-sala.request';
 import { AddHorarioSalaRequest } from './requests/add-horario-sala.request';
 import { PredioOutput } from '../../application/dtos/outputs/predio.output';
+import { GetAllPrediosQueryOut } from '../../application/dtos/outputs/get-all-predios.query-out';
 
 @Controller('predios')
 export class PredioController {
@@ -32,7 +32,7 @@ export class PredioController {
   ) {}
 
   @Get()
-  async getAll(): Promise<PredioOutput[]> {
+  async getAll(): Promise<GetAllPrediosQueryOut[]> {
     return this.getAllPrediosQueryHandler.execute();
   }
 
@@ -61,7 +61,7 @@ export class PredioController {
   }
 
   @Delete(':predioId/salas/:salaId')
-  @HttpCode(204) // Retorna "No Content" quando deleta com sucesso
+  @HttpCode(204)
   async removeSala(
     @Param('predioId', ParseIntPipe) predioId: number,
     @Param('salaId', ParseIntPipe) salaId: number,

@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PredioOutput } from '../dtos/outputs/predio.output';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
-import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import { PrismaService } from "../../../../infrastructure/database/prisma.service"
+import {
+  GetAllPrediosQueryOut,
+  getAllPrediosInclude,
+} from '../dtos/outputs/get-all-predios.query-out';
 
 @Injectable()
 export class GetAllPrediosQueryHandler {
@@ -11,35 +14,14 @@ export class GetAllPrediosQueryHandler {
     private readonly logger: PinoLogger,
   ) {}
 
-  async execute(): Promise<PredioOutput[]> {
-    this.logger.info({ msg: 'Listando todos os prédios' });
+  async execute(): Promise<GetAllPrediosQueryOut[]> {
+    this.logger.info({ msg: 'Listando todos os prédios (Query)' });
 
     const predios = await this.prisma.predio.findMany({
-      include: {
-        salas: {
-          include: {
-            horarios: true,
-          },
-        },
-      },
+      include: getAllPrediosInclude,
+      orderBy: { nome: 'asc' },
     });
 
-    return predios.map((p) => ({
-      id: p.id_predio,
-      nome: p.nome,
-      salas: p.salas.map((s) => ({
-        id: s.id_sala,
-        numeroSala: s.numero_sala,
-        capacidade: s.capacidade,
-        tipoSala: s.tipo_sala,
-        horarios: s.horarios.map((h) => ({
-          id: h.id_horario,
-          diaSemana: h.dia_semana,
-          turno: h.turno,
-          horaInicio: h.hora_inicio,
-          horaFim: h.hora_fim,
-        })),
-      })),
-    }));
+    return predios.map(GetAllPrediosQueryOut.fromPrisma);
   }
 }
