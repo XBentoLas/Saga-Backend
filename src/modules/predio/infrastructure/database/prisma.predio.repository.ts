@@ -16,9 +16,8 @@ type PredioComSalas = Prisma.PredioGetPayload<{
   };
 }>;
 
-@Injectable() // <--- CORREÇÃO 1: Adicionado Injectable
+@Injectable()
 export class PrismaPredioRepository implements IPredioRepository {
-  // <--- CORREÇÃO 2: Injetando PrismaService ao invés de PrismaClient puro
   constructor(private readonly prisma: PrismaService) {}
 
   async save(predio: Predio): Promise<void> {
@@ -38,7 +37,6 @@ export class PrismaPredioRepository implements IPredioRepository {
       }));
 
     await this.prisma.$transaction(async (tx) => {
-      // 1. Remove salas que não existem mais no agregado
       if (rawId !== 0) {
         await tx.sala.deleteMany({
           where: {
@@ -48,7 +46,6 @@ export class PrismaPredioRepository implements IPredioRepository {
         });
       }
 
-      // 2. Upsert do Prédio e Salas
       await tx.predio.upsert({
         where: { id_predio: rawId !== 0 ? rawId : -1 },
         create: {
@@ -145,5 +142,20 @@ export class PrismaPredioRepository implements IPredioRepository {
       },
       PredioId.create(prismaData.id_predio),
     );
+  }
+
+  async findByName(nome: string): Promise<Predio | null> {
+    const prismaPredio = await this.prisma.predio.findFirst({
+      where: { nome },
+      include: { salas: { include: { horarios: true } } },
+    });
+    if (!prismaPredio) return null;
+    return this.toDomain(prismaPredio);
+  }
+
+  async delete(id: PredioId): Promise<void> {
+    await this.prisma.predio.delete({
+      where: { id_predio: id.toValue() },
+    });
   }
 }

@@ -1,19 +1,20 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { IDisciplinaRepository } from '../../domain/repository/disciplina.repository.interface';
 import { Disciplina } from '../../domain/disciplina';
 import { DisciplinaId } from '../../domain/identifier/disciplina-id';
+import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 
-
-// Definição do tipo retornado pelo Prisma com os includes necessários
 type DisciplinaComRelacoes = Prisma.DisciplinaGetPayload<{
   include: {
-    cursos: true; // Tabela de Junção/Relação
-    professores: true; // Tabela de Junção/Relação
+    cursos: true;
+    professores: true;
   };
 }>;
 
+@Injectable()
 export class PrismaDisciplinaRepository implements IDisciplinaRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async save(disciplina: Disciplina): Promise<void> {
     const rawId = disciplina.id.toValue();
@@ -23,8 +24,6 @@ export class PrismaDisciplinaRepository implements IDisciplinaRepository {
       codigo_disciplina: disciplina.codigoDisciplina,
     };
 
-    // Prepara os arrays de conexão para o Prisma (Many-to-Many)
-    // O Prisma espera array de { id_coluna: valor }
     const cursosConnectInput = disciplina.cursoIds.map((id) => ({
       id_curso: id.toValue(),
     }));
@@ -35,8 +34,6 @@ export class PrismaDisciplinaRepository implements IDisciplinaRepository {
 
     await this.prisma.disciplina.upsert({
       where: { id_disciplina: rawId !== 0 ? rawId : -1 },
-
-      // --- CREATE ---
       create: {
         ...dataDisciplina,
         cursos: {
@@ -46,12 +43,8 @@ export class PrismaDisciplinaRepository implements IDisciplinaRepository {
           connect: professoresConnectInput,
         },
       },
-
-      // --- UPDATE ---
       update: {
         ...dataDisciplina,
-        // 'set' substitui todas as relações anteriores pelas atuais.
-        // O que não estiver na lista nova é removido do banco.
         cursos: {
           set: cursosConnectInput,
         },
@@ -91,7 +84,6 @@ export class PrismaDisciplinaRepository implements IDisciplinaRepository {
   }
 
   async findByCursoId(cursoId: number): Promise<Disciplina[]> {
-    // Busca todas as disciplinas que possuem o curso X na sua lista de cursos
     const prismaDisciplinas = await this.prisma.disciplina.findMany({
       where: {
         cursos: {
@@ -110,13 +102,10 @@ export class PrismaDisciplinaRepository implements IDisciplinaRepository {
   }
 
   private toDomain(prismaData: DisciplinaComRelacoes): Disciplina {
-    // 1. Mapeia array de Cursos do Prisma para { id_curso: number }[]
-    // A entidade não precisa dos dados completos do curso, apenas da referência
     const cursosMapped = prismaData.cursos.map((c) => ({
       id_curso: c.id_curso,
     }));
 
-    // 2. Mapeia array de Professores do Prisma para { id_professor: number }[]
     const professoresMapped = prismaData.professores.map((p) => ({
       id_professor: p.id_professor,
     }));
