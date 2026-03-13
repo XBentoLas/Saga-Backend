@@ -101,6 +101,12 @@ export class PrismaDisciplinaRepository implements IDisciplinaRepository {
     return prismaDisciplinas.map((d) => this.toDomain(d));
   }
 
+  async delete(id: DisciplinaId): Promise<void> {
+    await this.prisma.disciplina.delete({
+      where: { id_disciplina: id.toValue() },
+    });
+  }
+
   private toDomain(prismaData: DisciplinaComRelacoes): Disciplina {
     const cursosMapped = prismaData.cursos.map((c) => ({
       id_curso: c.id_curso,

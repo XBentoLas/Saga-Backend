@@ -1,10 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
-import { IAvailabilityTemplateGenerator } from '../../application/services/availability-template-generator.interface';
+import { IAvailabilityTemplateGenerator } from '../../application/ports/availability-template-generator.interface';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class ExcelAvailabilityTemplateService implements IAvailabilityTemplateGenerator {
+  constructor(
+    @InjectPinoLogger(ExcelAvailabilityTemplateService.name)
+    private readonly logger: PinoLogger,
+  ) {}
+
   async generateTemplate(): Promise<Buffer> {
+    this.logger.info({
+      msg: 'Iniciando geração do template Excel de disponibilidade',
+    });
+
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Sistema Acadêmico';
 
@@ -24,7 +34,6 @@ export class ExcelAvailabilityTemplateService implements IAvailabilityTemplateGe
       pattern: 'solid',
       fgColor: { argb: 'FFFFFFFF' },
     }; // Branco
-
     const whiteFont: Partial<ExcelJS.Font> = {
       color: { argb: 'FFFFFFFF' },
       bold: true,
@@ -35,7 +44,6 @@ export class ExcelAvailabilityTemplateService implements IAvailabilityTemplateGe
       bottom: { style: 'thin' },
       right: { style: 'thin' },
     };
-
     const booleanValidation: ExcelJS.DataValidation = {
       type: 'list',
       allowBlank: true,
@@ -49,10 +57,8 @@ export class ExcelAvailabilityTemplateService implements IAvailabilityTemplateGe
     // ABA 1: PROFESSOR (NOVO LAYOUT 2 COLUNAS)
     // ==========================================
     const sheetProfessor = workbook.addWorksheet('Professor');
-    // Apenas 2 colunas: A primeira para o Rótulo, a segunda para a Resposta
     sheetProfessor.columns = [{ width: 30 }, { width: 50 }];
 
-    // --- Sessão 1: Dados Pessoais ---
     sheetProfessor.addRow(['DADOS DO PROFESSOR', '']);
     sheetProfessor.mergeCells('A1:B1');
     const header1 = sheetProfessor.getCell('A1');
@@ -64,7 +70,6 @@ export class ExcelAvailabilityTemplateService implements IAvailabilityTemplateGe
     sheetProfessor.addRow(['Nome completo:', '']);
     sheetProfessor.addRow(['Email institucional:', '']);
 
-    // --- Sessão 2: Disponibilidade ---
     sheetProfessor.addRow(['DISPONIBILIDADE POR TURNO', '']);
     sheetProfessor.mergeCells('A4:B4');
     const header2 = sheetProfessor.getCell('A4');
@@ -78,38 +83,31 @@ export class ExcelAvailabilityTemplateService implements IAvailabilityTemplateGe
     sheetProfessor.addRow(['Noturno', 'Não']);
     sheetProfessor.addRow(['EAD', 'Não']);
 
-    // --- Aplicando Estilos (Zebrado e Bordas) na Aba Professor ---
-    // Pinta as linhas de Dados Pessoais (Linhas 2 e 3)
     [2, 3].forEach((rowNum, idx) => {
       const isEven = idx % 2 === 0;
       const rowFill = isEven ? zebraLight : zebraDark;
       const row = sheetProfessor.getRow(rowNum);
-
       const cellA = row.getCell(1);
       cellA.fill = rowFill;
-      cellA.font = { bold: true }; // Deixa "Nome:" e "Email:" em negrito
+      cellA.font = { bold: true };
       cellA.border = borderAll;
-
       const cellB = row.getCell(2);
       cellB.fill = rowFill;
       cellB.border = borderAll;
     });
 
-    // Pinta as linhas de Turnos (Linhas 5, 6, 7 e 8)
     [5, 6, 7, 8].forEach((rowNum, idx) => {
       const isEven = idx % 2 === 0;
       const rowFill = isEven ? zebraLight : zebraDark;
       const row = sheetProfessor.getRow(rowNum);
-
       const cellA = row.getCell(1);
       cellA.fill = rowFill;
       cellA.font = { bold: true };
       cellA.border = borderAll;
-
       const cellB = row.getCell(2);
       cellB.fill = rowFill;
       cellB.border = borderAll;
-      cellB.dataValidation = booleanValidation; // Adiciona o dropdown Sim/Não
+      cellB.dataValidation = booleanValidation;
       cellB.alignment = { horizontal: 'center' };
     });
 
@@ -133,7 +131,6 @@ export class ExcelAvailabilityTemplateService implements IAvailabilityTemplateGe
     for (let r = 2; r <= 21; r++) {
       const isEven = r % 2 === 0;
       const rowFill = isEven ? zebraLight : zebraDark;
-
       for (let c = 1; c <= 2; c++) {
         const cell = sheetDisciplinas.getCell(r, c);
         cell.fill = rowFill;
@@ -186,7 +183,6 @@ export class ExcelAvailabilityTemplateService implements IAvailabilityTemplateGe
         sex: 'Não',
         sab: 'Não',
       });
-
       const isEven = index % 2 === 0;
       const rowFill = isEven ? zebraLight : zebraDark;
 
@@ -195,7 +191,6 @@ export class ExcelAvailabilityTemplateService implements IAvailabilityTemplateGe
         cell.fill = rowFill;
         cell.border = borderAll;
         cell.alignment = { horizontal: 'center' };
-
         if (c === 1) {
           cell.font = { bold: true };
         } else {
@@ -205,6 +200,10 @@ export class ExcelAvailabilityTemplateService implements IAvailabilityTemplateGe
     });
 
     const buffer = await workbook.xlsx.writeBuffer();
+
+    this.logger.info({
+      msg: 'Template Excel de disponibilidade gerado com sucesso',
+    });
     return Buffer.from(buffer);
   }
 }

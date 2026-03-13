@@ -88,4 +88,9 @@ export class PrismaProfessorRepository implements IProfessorRepository {
       ProfessorId.create(prismaData.id_professor),
     );
   }
+  async delete(id: ProfessorId): Promise<void> {
+    await this.prisma.professor.delete({
+      where: { id_professor: id.toValue() },
+    });
+  }
 }

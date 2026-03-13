@@ -1,20 +1,34 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import {
   IExcelProfessorParser,
   ProfessorParsedData,
   HorarioParsedData,
-} from '../../application/services/excel-professor-parser.interface';
+} from '../../application/ports/excel-professor-parser.interface';
 import { DiaSemana, Turno } from '../../domain/enums';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 @Injectable()
 export class NodeExcelProfessorParserService implements IExcelProfessorParser {
+  constructor(
+    @InjectPinoLogger(NodeExcelProfessorParserService.name)
+    private readonly logger: PinoLogger,
+  ) {}
+
   async parse(buffer: Buffer): Promise<ProfessorParsedData> {
+    this.logger.info({
+      msg: 'Iniciando leitura e extração de dados do arquivo Excel',
+    });
     const workbook = new ExcelJS.Workbook();
+
     try {
       await workbook.xlsx.load(buffer as any);
-    } catch {
-      throw new BadRequestException(
+    } catch (error) {
+      this.logger.error({
+        msg: 'Falha ao carregar o buffer como arquivo Excel',
+        err: error as Error,
+      });
+      throw new Error(
         'Falha ao ler o arquivo. Certifique-se de que é um Excel válido (.xlsx).',
       );
     }
@@ -24,7 +38,10 @@ export class NodeExcelProfessorParserService implements IExcelProfessorParser {
     const sheetHorarios = workbook.getWorksheet('Horários');
 
     if (!sheetProfessor || !sheetDisciplinas || !sheetHorarios) {
-      throw new BadRequestException(
+      this.logger.warn({
+        msg: 'Estrutura da planilha inválida. Abas ausentes.',
+      });
+      throw new Error(
         'Planilha inválida. As abas Professor, Disciplinas e Horários são obrigatórias.',
       );
     }
@@ -33,7 +50,12 @@ export class NodeExcelProfessorParserService implements IExcelProfessorParser {
     const email = sheetProfessor.getCell('B3').text.trim();
 
     if (!nome || !email) {
-      throw new BadRequestException(
+      this.logger.warn({
+        msg: 'Dados do professor ausentes na aba Professor',
+        nome,
+        email,
+      });
+      throw new Error(
         'Nome e Email do professor são obrigatórios na aba "Professor".',
       );
     }
@@ -58,7 +80,7 @@ export class NodeExcelProfessorParserService implements IExcelProfessorParser {
 
     sheetHorarios.eachRow((row, rowNumber) => {
       if (rowNumber > 1) {
-        const horarioStr = row.getCell(1).text.trim(); // Ex: "07:30 - 09:10"
+        const horarioStr = row.getCell(1).text.trim();
 
         if (horarioStr) {
           const { horaInicio, horaFim, turno } = this.parseHorarioString(
@@ -78,6 +100,12 @@ export class NodeExcelProfessorParserService implements IExcelProfessorParser {
       }
     });
 
+    this.logger.info({
+      msg: 'Extração do arquivo concluída com sucesso',
+      totalDisciplinasExtraidas: disciplinasCodigos.length,
+      totalHorariosExtraidos: horarios.length,
+    });
+
     return { nome, email, disciplinasCodigos, horarios };
   }
 
@@ -89,7 +117,12 @@ export class NodeExcelProfessorParserService implements IExcelProfessorParser {
     const match = horarioStr.match(regex);
 
     if (!match) {
-      throw new BadRequestException(
+      this.logger.error({
+        msg: 'Padrão de horário inválido detectado',
+        linha,
+        horarioStr,
+      });
+      throw new Error(
         `Formato de horário inválido na linha ${linha}: ${horarioStr}. Esperado: "HH:MM - HH:MM"`,
       );
     }

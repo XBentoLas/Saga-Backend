@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IAvailabilityTemplateGenerator } from '../services/availability-template-generator.interface';
+import { IAvailabilityTemplateGenerator } from '../ports/availability-template-generator.interface';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 @Injectable()

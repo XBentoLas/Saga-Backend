@@ -94,7 +94,7 @@ model HorarioProfessor {
   hora_inicio  DateTime  @db.Time
   hora_fim     DateTime  @db.Time
 
-  professor Professor @relation(fields: [id_professor], references: [id_professor])
+  professor Professor @relation(fields: [id_professor], references: [id_professor], onDelete: Cascade)
 
   @@map("horario_professor")
 }
@@ -121,7 +121,7 @@ model Agendamento {
   hora_fim       DateTime  @db.Time
   dia_semana     DiaSemana
 
-  professor Professor @relation(fields: [id_professor], references: [id_professor])
+  professor Professor @relation(fields: [id_professor], references: [id_professor], onDelete: Cascade)
   turma     Turma     @relation(fields: [id_turma], references: [id_turma])
   sala      Sala      @relation(fields: [id_sala], references: [id_sala])
 

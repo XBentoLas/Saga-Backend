@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { IProfessorRepository } from '../../domain/repository/professor.repository.interface';
 import { IDisciplinaRepository } from '../../../disciplina/domain/repository/disciplina.repository.interface';
-import { IExcelProfessorParser } from '../services/excel-professor-parser.interface';
+import { IExcelProfessorParser } from '../ports/excel-professor-parser.interface';
 import { ImportProfessorExcelCommand } from '../dtos/command/import-professor-excel.command';
 import { Professor } from '../../domain/professor';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
