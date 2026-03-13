@@ -9,6 +9,7 @@ import { CursoModule } from './modules/curso/curso.module';
 import { UserModule } from './modules/user/user.module';
 import { AgendamentoModule } from './modules/agendamento/agendamento.module';
 import { LoggerModule } from 'nestjs-pino';
+import { TurmaModule } from './modules/turma/turma.module';
 
 @Module({
   imports: [
@@ -19,7 +20,28 @@ import { LoggerModule } from 'nestjs-pino';
     CursoModule,
     UserModule,
     AgendamentoModule,
+<<<<<<< Updated upstream
     LoggerModule.forRoot(),
+=======
+    TurmaModule,
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? {
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  levelFirst: true,
+                  translateTime: 'SYS:standard',
+                  singleLine: true,
+                  ignore: 'pid,hostname',
+                },
+              }
+            : undefined,
+      },
+    }),
+>>>>>>> Stashed changes
   ],
   controllers: [AppController],
   providers: [AppService],
