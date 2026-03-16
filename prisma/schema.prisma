@@ -123,13 +123,8 @@ model Agendamento {
   hora_fim       DateTime  @db.Time
   dia_semana     DiaSemana
 
-<<<<<<< Updated upstream
-  professor Professor @relation(fields: [id_professor], references: [id_professor])
-  turma     Turma     @relation(fields: [id_turma], references: [id_turma])
-=======
   professor Professor @relation(fields: [id_professor], references: [id_professor], onDelete: Cascade)
   turma     Turma     @relation(fields: [id_turma], references: [id_turma], onDelete: Cascade)
->>>>>>> Stashed changes
   sala      Sala      @relation(fields: [id_sala], references: [id_sala])
 
   @@map("agendamento")

@@ -20,9 +20,6 @@ import { TurmaModule } from './modules/turma/turma.module';
     CursoModule,
     UserModule,
     AgendamentoModule,
-<<<<<<< Updated upstream
-    LoggerModule.forRoot(),
-=======
     TurmaModule,
     LoggerModule.forRoot({
       pinoHttp: {
@@ -41,7 +38,6 @@ import { TurmaModule } from './modules/turma/turma.module';
             : undefined,
       },
     }),
->>>>>>> Stashed changes
   ],
   controllers: [AppController],
   providers: [AppService],
