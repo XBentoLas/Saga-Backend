@@ -9,6 +9,7 @@ import { CursoModule } from './modules/curso/curso.module';
 import { UserModule } from './modules/user/user.module';
 import { AgendamentoModule } from './modules/agendamento/agendamento.module';
 import { LoggerModule } from 'nestjs-pino';
+import { TurmaModule } from './modules/turma/turma.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { LoggerModule } from 'nestjs-pino';
     CursoModule,
     UserModule,
     AgendamentoModule,
+    TurmaModule,
     LoggerModule.forRoot({
       pinoHttp: {
         transport:

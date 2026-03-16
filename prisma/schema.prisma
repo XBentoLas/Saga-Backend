@@ -64,12 +64,14 @@ model Disciplina {
 }
 
 model Turma {
-  id_turma   Int  @id @default(autoincrement())
-  id_curso   Int
-  quantidade Int?
-  semestre   Int
+  id_turma     Int    @id @default(autoincrement())
+  id_curso     Int
+  codigo_turma String @unique
+  turno        Turno
+  quantidade   Int?
+  semestre     Int
 
-  curso        Curso         @relation(fields: [id_curso], references: [id_curso])
+  curso        Curso         @relation(fields: [id_curso], references: [id_curso], onDelete: Cascade)
   agendamentos Agendamento[]
 
   @@map("turma")
@@ -122,7 +124,7 @@ model Agendamento {
   dia_semana     DiaSemana
 
   professor Professor @relation(fields: [id_professor], references: [id_professor], onDelete: Cascade)
-  turma     Turma     @relation(fields: [id_turma], references: [id_turma])
+  turma     Turma     @relation(fields: [id_turma], references: [id_turma], onDelete: Cascade)
   sala      Sala      @relation(fields: [id_sala], references: [id_sala])
 
   @@map("agendamento")
