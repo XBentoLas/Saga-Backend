@@ -19,7 +19,23 @@ import { LoggerModule } from 'nestjs-pino';
     CursoModule,
     UserModule,
     AgendamentoModule,
-    LoggerModule.forRoot(),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? {
+                target: 'pino-pretty',
+                options: {
+                  colorize: true,
+                  levelFirst: true,
+                  translateTime: 'SYS:standard',
+                  singleLine: true,
+                  ignore: 'pid,hostname',
+                },
+              }
+            : undefined,
+      },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -7,4 +7,8 @@ export abstract class IPredioRepository {
   abstract findById(id: PredioId): Promise<Predio | null>;
 
   abstract findAll(): Promise<Predio[]>;
+
+  abstract findByName(nome: string): Promise<Predio | null>;
+
+  abstract delete(id: PredioId): Promise<void>;
 }

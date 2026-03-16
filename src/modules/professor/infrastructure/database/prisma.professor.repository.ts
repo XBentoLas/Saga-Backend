@@ -1,8 +1,10 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { IProfessorRepository } from '../../domain/repository/professor.repository.interface';
 import { Professor } from '../../domain/professor';
 import { ProfessorId } from '../../domain/identifier/professor-id';
 import { DiaSemana, Turno } from '../../domain/enums';
+import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 
 type ProfessorComRelacoes = Prisma.ProfessorGetPayload<{
   include: {
@@ -11,8 +13,9 @@ type ProfessorComRelacoes = Prisma.ProfessorGetPayload<{
   };
 }>;
 
+@Injectable()
 export class PrismaProfessorRepository implements IProfessorRepository {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async save(professor: Professor): Promise<void> {
     const rawId = professor.id.toValue();
@@ -84,5 +87,10 @@ export class PrismaProfessorRepository implements IProfessorRepository {
       },
       ProfessorId.create(prismaData.id_professor),
     );
+  }
+  async delete(id: ProfessorId): Promise<void> {
+    await this.prisma.professor.delete({
+      where: { id_professor: id.toValue() },
+    });
   }
 }

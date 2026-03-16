@@ -102,6 +102,11 @@ export class Professor extends AggregateRoot<ProfessorProps> {
     return this.props.disciplinaIds;
   }
 
+  public updateNome(novoNome: string): void {
+    this.props.nome = novoNome;
+    this.validate();
+  }
+
   // --- Comportamentos (Horários) ---
   public adicionarHorario(horario: HorarioProfessorProps): void {
     const novoHorario = HorarioProfessor.create(horario);
@@ -112,6 +117,10 @@ export class Professor extends AggregateRoot<ProfessorProps> {
     this.props.horarios = this.props.horarios.filter(
       (h) => h.id.toValue() !== idHorario,
     );
+  }
+
+  public limparHorarios(): void {
+    this.props.horarios = [];
   }
 
   // --- Comportamentos (Disciplinas) ---
@@ -128,5 +137,9 @@ export class Professor extends AggregateRoot<ProfessorProps> {
     this.props.disciplinaIds = this.props.disciplinaIds.filter(
       (id) => id.toValue() !== idDisciplina,
     );
+  }
+
+  public limparDisciplinas(): void {
+    this.props.disciplinaIds = [];
   }
 }

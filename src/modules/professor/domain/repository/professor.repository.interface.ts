@@ -7,4 +7,6 @@ export abstract class IProfessorRepository {
   abstract findById(id: ProfessorId): Promise<Professor | null>;
 
   abstract findByEmail(email: string): Promise<Professor | null>;
+
+  abstract delete(id: ProfessorId): Promise<void>;
 }

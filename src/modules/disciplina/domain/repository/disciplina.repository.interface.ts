@@ -9,4 +9,6 @@ export abstract class IDisciplinaRepository {
   abstract findByCodigo(codigo: string): Promise<Disciplina | null>;
 
   abstract findByCursoId(cursoId: number): Promise<Disciplina[]>;
+
+  abstract delete(id: DisciplinaId): Promise<void>;
 }

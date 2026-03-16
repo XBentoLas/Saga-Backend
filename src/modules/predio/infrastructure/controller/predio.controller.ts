@@ -7,6 +7,9 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { CreatePredioUseCase } from '../../application/use-cases/create-predio.use-case';
 import { AddSalaUseCase } from '../../application/use-cases/add-sala.use-case';
@@ -19,6 +22,9 @@ import { AddSalaRequest } from './requests/add-sala.request';
 import { AddHorarioSalaRequest } from './requests/add-horario-sala.request';
 import { PredioOutput } from '../../application/dtos/outputs/predio.output';
 import { GetAllPrediosQueryOut } from '../../application/dtos/outputs/get-all-predios.query-out';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ImportSalasCsvUseCase } from '../../application/use-cases/import-salas-csv.use-case';
+import { RemovePredioUseCase } from '../../application/use-cases/remove-predio.use-case';
 
 @Controller('predios')
 export class PredioController {
@@ -29,6 +35,8 @@ export class PredioController {
     private readonly removeSalaUseCase: RemoveSalaUseCase,
     private readonly removeHorarioSalaUseCase: RemoveHorarioSalaUseCase,
     private readonly getAllPrediosQueryHandler: GetAllPrediosQueryHandler,
+    private readonly importSalasCsvUseCase: ImportSalasCsvUseCase,
+    private readonly removePredioUseCase: RemovePredioUseCase,
   ) {}
 
   @Get()
@@ -60,6 +68,31 @@ export class PredioController {
     );
   }
 
+  @Post('importar-csv')
+  @UseInterceptors(FileInterceptor('file'))
+  async importarCsv(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{ message: string }> {
+    if (!file) {
+      throw new BadRequestException('Arquivo não enviado.');
+    }
+
+    if (file.mimetype !== 'text/csv' && !file.originalname.endsWith('.csv')) {
+      throw new BadRequestException(
+        'Formato inválido. O arquivo deve ser um .csv',
+      );
+    }
+
+    await this.importSalasCsvUseCase.execute(file.buffer);
+
+    return { message: 'Importação concluída com sucesso!' };
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async removePredio(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    await this.removePredioUseCase.execute({ predioId: id });
+  }
   @Delete(':predioId/salas/:salaId')
   @HttpCode(204)
   async removeSala(

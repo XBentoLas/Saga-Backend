@@ -36,7 +36,7 @@ model Sala {
   capacidade  Int?
   tipo_sala   String?
 
-  predio       Predio        @relation(fields: [id_predio], references: [id_predio])
+  predio       Predio        @relation(fields: [id_predio], references: [id_predio], onDelete: Cascade)
   horarios     HorarioSala[]
   agendamentos Agendamento[]
 
@@ -94,7 +94,7 @@ model HorarioProfessor {
   hora_inicio  DateTime  @db.Time
   hora_fim     DateTime  @db.Time
 
-  professor Professor @relation(fields: [id_professor], references: [id_professor])
+  professor Professor @relation(fields: [id_professor], references: [id_professor], onDelete: Cascade)
 
   @@map("horario_professor")
 }
@@ -107,7 +107,7 @@ model HorarioSala {
   hora_inicio DateTime  @db.Time
   hora_fim    DateTime  @db.Time
 
-  sala Sala @relation(fields: [id_sala], references: [id_sala])
+  sala Sala @relation(fields: [id_sala], references: [id_sala], onDelete: Cascade)
 
   @@map("horario_sala")
 }
@@ -121,7 +121,7 @@ model Agendamento {
   hora_fim       DateTime  @db.Time
   dia_semana     DiaSemana
 
-  professor Professor @relation(fields: [id_professor], references: [id_professor])
+  professor Professor @relation(fields: [id_professor], references: [id_professor], onDelete: Cascade)
   turma     Turma     @relation(fields: [id_turma], references: [id_turma])
   sala      Sala      @relation(fields: [id_sala], references: [id_sala])
 
