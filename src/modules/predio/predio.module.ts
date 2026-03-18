@@ -8,12 +8,12 @@ import { AddHorarioSalaUseCase } from './application/use-cases/add-horario-sala.
 import { GetAllPrediosQueryHandler } from './application/queries/get-all-predios.query-handler';
 import { PrismaModule } from '../../infrastructure/database/prisma.module';
 import { RemoveSalaUseCase } from './application/use-cases/remove-sala.use-case';
-import { RemoveHorarioSalaUseCase} from './application/use-cases/remove-horario-sala.use-case';
-import { ICsvSalaParser} from './application/services/csv-sala-parser.interface';
-import { NodeCsvSalaParserService} from './infrastructure/services/node-csv-sala-parser.service';
-import { ImportSalasCsvUseCase} from './application/use-cases/import-salas-csv.use-case';
+import { RemoveHorarioSalaUseCase } from './application/use-cases/remove-horario-sala.use-case';
+import { ICsvSalaParser } from './application/ports/csv-sala-parser.interface';
+import { NodeCsvSalaParserService } from './infrastructure/services/node-csv-sala-parser.service';
+import { ImportSalasCsvUseCase } from './application/use-cases/import-salas-csv.use-case';
 import { RemovePredioUseCase } from './application/use-cases/remove-predio.use-case';
-import { ChangeStatusSalaUseCase} from './application/dtos/command/change-status-sala.use-case';
+import { ChangeStatusSalaUseCase } from './application/dtos/command/change-status-sala.use-case';
 
 @Module({
   imports: [PrismaModule],

@@ -1,6 +1,6 @@
 export interface SalaImportDto {
   predio: string;
-  numeroSala: number;
+  numeroSala: string;
   tipoSala: string;
   capacidade: number;
 }

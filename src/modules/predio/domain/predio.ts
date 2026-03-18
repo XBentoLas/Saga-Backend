@@ -35,7 +35,7 @@ export class Predio extends AggregateRoot<PredioProps> {
       nome: string;
       salas?: {
         id_sala: number;
-        numero_sala: number;
+        numero_sala: string;
         capacidade: number | null;
         tipo_sala: string | null;
         is_active: boolean;
@@ -72,15 +72,26 @@ export class Predio extends AggregateRoot<PredioProps> {
   }
 
   public adicionarSala(
-    numeroSala: number,
+    numeroSala: string,
     capacidade?: number,
     tipoSala?: string,
   ): void {
+    const letraPredio = this.nome.charAt(0).toUpperCase();
+    const letraSala = numeroSala.split('-')[0].toUpperCase();
+
+    if (letraPredio !== letraSala) {
+      throw new Error(
+        `Violação de Domínio: A sala ${numeroSala} não pode ser adicionada ao prédio ${this.nome}. As salas deste prédio devem começar com a letra '${letraPredio}'.`,
+      );
+    }
+
     const salaExiste = this.props.salas.some(
       (s) => s.numeroSala === numeroSala,
     );
-    if (salaExiste)
-      throw new Error(`A sala número ${numeroSala} já existe neste prédio.`);
+    if (salaExiste) {
+      throw new Error(`A sala ${numeroSala} já existe neste prédio.`);
+    }
+
     const novaSala = Sala.create({ numeroSala, capacidade, tipoSala });
     this.props.salas.push(novaSala);
   }

@@ -2,9 +2,10 @@ import { Entity } from '../../../common/domain/entity';
 import { SalaId } from './identifier/sala-id';
 import { HorarioSala, HorarioSalaProps } from './horario-sala';
 import { DiaSemana, Turno } from './enums';
+import { NumeroSalaVO } from './value-objects/numero-sala';
 
 export interface SalaProps {
-  numeroSala: number;
+  numeroSala: NumeroSalaVO;
   capacidade: number | null;
   tipoSala: string | null;
   horarios: HorarioSala[];
@@ -19,8 +20,8 @@ export class Sala extends Entity<SalaProps> {
   get id(): SalaId {
     return this._id as SalaId;
   }
-  get numeroSala(): number {
-    return this.props.numeroSala;
+  get numeroSala(): string {
+    return this.props.numeroSala.toValue();
   }
   get capacidade(): number | null {
     return this.props.capacidade;
@@ -36,12 +37,12 @@ export class Sala extends Entity<SalaProps> {
   }
 
   public static create(
-    props: { numeroSala: number; capacidade?: number; tipoSala?: string },
+    props: { numeroSala: string; capacidade?: number; tipoSala?: string },
     id?: SalaId,
   ): Sala {
     return new Sala(
       {
-        numeroSala: props.numeroSala,
+        numeroSala: NumeroSalaVO.create(props.numeroSala),
         capacidade: props.capacidade || null,
         tipoSala: props.tipoSala || null,
         horarios: [],
@@ -53,7 +54,7 @@ export class Sala extends Entity<SalaProps> {
 
   public static restore(
     props: {
-      numero_sala: number;
+      numero_sala: string;
       capacidade: number | null;
       tipo_sala: string | null;
       is_active: boolean;
@@ -81,7 +82,7 @@ export class Sala extends Entity<SalaProps> {
 
     return new Sala(
       {
-        numeroSala: props.numero_sala,
+        numeroSala: NumeroSalaVO.create(props.numero_sala),
         capacidade: props.capacidade,
         tipoSala: props.tipo_sala,
         horarios: horariosDomain,
