@@ -3,6 +3,6 @@ export interface DisciplinaParsedData {
   nome: string;
 }
 
-export abstract class ICsvDisciplinaParser {
+export abstract class IExcelDisciplinaParser {
   abstract parse(buffer: Buffer): Promise<DisciplinaParsedData[]>;
 }

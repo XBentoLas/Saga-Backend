@@ -5,15 +5,10 @@ import { Predio } from '../../domain/predio';
 import { PredioId } from '../../domain/identifier/predio-id';
 import { DiaSemana, Turno } from '../../domain/enums';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
+import { HorarioSala } from '../../domain/horario-sala';
 
 type PredioComSalas = Prisma.PredioGetPayload<{
-  include: {
-    salas: {
-      include: {
-        horarios: true;
-      };
-    };
-  };
+  include: { salas: { include: { horarios: true } } };
 }>;
 
 @Injectable()
@@ -28,7 +23,7 @@ export class PrismaPredioRepository implements IPredioRepository {
     const salasExistentes = predio.salas.filter((s) => s.id.toValue() !== 0);
     const idsSalasAtuais = salasExistentes.map((s) => s.id.toValue());
 
-    const mapHorariosCreate = (horarios: any[]) =>
+    const mapHorariosCreate = (horarios: HorarioSala[]) =>
       horarios.map((h) => ({
         dia_semana: h.diaSemana as unknown as DiaSemana,
         turno: h.turno as unknown as Turno,
@@ -39,10 +34,7 @@ export class PrismaPredioRepository implements IPredioRepository {
     await this.prisma.$transaction(async (tx) => {
       if (rawId !== 0) {
         await tx.sala.deleteMany({
-          where: {
-            id_predio: rawId,
-            id_sala: { notIn: idsSalasAtuais },
-          },
+          where: { id_predio: rawId, id_sala: { notIn: idsSalasAtuais } },
         });
       }
 
@@ -55,9 +47,8 @@ export class PrismaPredioRepository implements IPredioRepository {
               numero_sala: sala.numeroSala,
               capacidade: sala.capacidade,
               tipo_sala: sala.tipoSala,
-              horarios: {
-                create: mapHorariosCreate(sala.horarios),
-              },
+              is_active: sala.isActive,
+              horarios: { create: mapHorariosCreate(sala.horarios) },
             })),
           },
         },
@@ -68,9 +59,8 @@ export class PrismaPredioRepository implements IPredioRepository {
               numero_sala: sala.numeroSala,
               capacidade: sala.capacidade,
               tipo_sala: sala.tipoSala,
-              horarios: {
-                create: mapHorariosCreate(sala.horarios),
-              },
+              is_active: sala.isActive,
+              horarios: { create: mapHorariosCreate(sala.horarios) },
             })),
             update: salasExistentes.map((sala) => ({
               where: { id_sala: sala.id.toValue() },
@@ -78,6 +68,7 @@ export class PrismaPredioRepository implements IPredioRepository {
                 numero_sala: sala.numeroSala,
                 capacidade: sala.capacidade,
                 tipo_sala: sala.tipoSala,
+                is_active: sala.isActive,
                 horarios: {
                   deleteMany: {},
                   create: mapHorariosCreate(sala.horarios),
@@ -93,55 +84,17 @@ export class PrismaPredioRepository implements IPredioRepository {
   async findById(id: PredioId): Promise<Predio | null> {
     const prismaPredio = await this.prisma.predio.findUnique({
       where: { id_predio: id.toValue() },
-      include: {
-        salas: {
-          include: {
-            horarios: true,
-          },
-        },
-      },
+      include: { salas: { include: { horarios: true } } },
     });
-
     if (!prismaPredio) return null;
     return this.toDomain(prismaPredio);
   }
 
   async findAll(): Promise<Predio[]> {
     const prismaPredios = await this.prisma.predio.findMany({
-      include: {
-        salas: {
-          include: {
-            horarios: true,
-          },
-        },
-      },
+      include: { salas: { include: { horarios: true } } },
     });
-
     return prismaPredios.map((p) => this.toDomain(p));
-  }
-
-  private toDomain(prismaData: PredioComSalas): Predio {
-    const salasMapped = prismaData.salas.map((s) => ({
-      id_sala: s.id_sala,
-      numero_sala: s.numero_sala,
-      capacidade: s.capacidade,
-      tipo_sala: s.tipo_sala,
-      horarios: s.horarios.map((h) => ({
-        id_horario: h.id_horario,
-        dia_semana: h.dia_semana as string,
-        turno: h.turno as string,
-        hora_inicio: h.hora_inicio,
-        hora_fim: h.hora_fim,
-      })),
-    }));
-
-    return Predio.restore(
-      {
-        nome: prismaData.nome,
-        salas: salasMapped,
-      },
-      PredioId.create(prismaData.id_predio),
-    );
   }
 
   async findByName(nome: string): Promise<Predio | null> {
@@ -157,5 +110,27 @@ export class PrismaPredioRepository implements IPredioRepository {
     await this.prisma.predio.delete({
       where: { id_predio: id.toValue() },
     });
+  }
+
+  private toDomain(prismaData: PredioComSalas): Predio {
+    const salasMapped = prismaData.salas.map((s) => ({
+      id_sala: s.id_sala,
+      numero_sala: s.numero_sala,
+      capacidade: s.capacidade,
+      tipo_sala: s.tipo_sala,
+      is_active: s.is_active,
+      horarios: s.horarios.map((h) => ({
+        id_horario: h.id_horario,
+        dia_semana: h.dia_semana as string,
+        turno: h.turno as string,
+        hora_inicio: h.hora_inicio,
+        hora_fim: h.hora_fim,
+      })),
+    }));
+
+    return Predio.restore(
+      { nome: prismaData.nome, salas: salasMapped },
+      PredioId.create(prismaData.id_predio),
+    );
   }
 }

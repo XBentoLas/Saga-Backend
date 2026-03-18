@@ -35,6 +35,7 @@ model Sala {
   numero_sala Int
   capacidade  Int?
   tipo_sala   String?
+  is_active   Boolean @default(true)
 
   predio       Predio        @relation(fields: [id_predio], references: [id_predio], onDelete: Cascade)
   horarios     HorarioSala[]

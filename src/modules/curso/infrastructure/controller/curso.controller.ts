@@ -9,14 +9,15 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ImportTurmaExcelUseCase } from '../../application/use-cases/import-turma-excel.use-case';
-import { DeleteTurmaUseCase } from '../../application/use-cases/delete-turma.use-case';
+import { ImportCursoExcelUseCase } from '../../application/use-cases/import-curso-excel.use-case';
+import { DeleteCursoUseCase } from '../../application/use-cases/delete-curso.use-case';
 
-@Controller('turmas')
-export class TurmaController {
+
+@Controller('cursos')
+export class CursoController {
   constructor(
-    private readonly importExcelUseCase: ImportTurmaExcelUseCase,
-    private readonly deleteUseCase: DeleteTurmaUseCase,
+    private readonly importExcelUseCase: ImportCursoExcelUseCase,
+    private readonly deleteUseCase: DeleteCursoUseCase,
   ) {}
 
   @Post('importar-excel')
@@ -35,7 +36,7 @@ export class TurmaController {
 
     if (!isExcel) {
       throw new BadRequestException(
-        'Formato inválido. O arquivo deve ser um Excel (.xlsx).',
+        'Formato inválido. O arquivo deve ser uma planilha Excel (.xlsx).',
       );
     }
 
@@ -45,17 +46,17 @@ export class TurmaController {
       if (error instanceof Error) {
         throw new BadRequestException(error.message);
       }
-      throw new BadRequestException('Erro inesperado ao importar turmas.');
+      throw new BadRequestException('Erro inesperado ao importar cursos.');
     }
 
-    return { message: 'Turmas importadas com sucesso!' };
+    return { message: 'Cursos importados com sucesso!' };
   }
 
   @Delete(':id')
-  async deleteTurma(
+  async deleteCurso(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ message: string }> {
-    await this.deleteUseCase.execute({ turmaId: id });
-    return { message: 'Turma removida com sucesso!' };
+    await this.deleteUseCase.execute({ cursoId: id });
+    return { message: 'Curso removido com sucesso!' };
   }
 }

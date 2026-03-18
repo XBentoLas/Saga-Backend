@@ -8,6 +8,7 @@ export interface SalaProps {
   capacidade: number | null;
   tipoSala: string | null;
   horarios: HorarioSala[];
+  isActive: boolean;
 }
 
 export class Sala extends Entity<SalaProps> {
@@ -30,8 +31,10 @@ export class Sala extends Entity<SalaProps> {
   get horarios(): HorarioSala[] {
     return this.props.horarios;
   }
+  get isActive(): boolean {
+    return this.props.isActive;
+  }
 
-  // --- Factory: Create (Nova Sala) ---
   public static create(
     props: { numeroSala: number; capacidade?: number; tipoSala?: string },
     id?: SalaId,
@@ -42,18 +45,18 @@ export class Sala extends Entity<SalaProps> {
         capacidade: props.capacidade || null,
         tipoSala: props.tipoSala || null,
         horarios: [],
+        isActive: true,
       },
       id,
     );
   }
 
-  // --- Factory: Restore (Do Banco) ---
-  // A Sala precisa saber restaurar a si mesma e seus horários filhos
   public static restore(
     props: {
       numero_sala: number;
       capacidade: number | null;
       tipo_sala: string | null;
+      is_active: boolean;
       horarios?: {
         id_horario: number;
         dia_semana: string;
@@ -82,12 +85,20 @@ export class Sala extends Entity<SalaProps> {
         capacidade: props.capacidade,
         tipoSala: props.tipo_sala,
         horarios: horariosDomain,
+        isActive: props.is_active,
       },
       id,
     );
   }
 
-  // --- Comportamentos ---
+  public ativar(): void {
+    this.props.isActive = true;
+  }
+
+  public desativar(): void {
+    this.props.isActive = false;
+  }
+
   public adicionarHorario(horario: HorarioSalaProps): void {
     const novoHorario = HorarioSala.create(horario);
     this.props.horarios.push(novoHorario);

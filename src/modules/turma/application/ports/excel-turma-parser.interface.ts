@@ -8,6 +8,6 @@ export interface TurmaParsedData {
   quantidadeAlunos: number;
 }
 
-export abstract class ICsvTurmaParser {
+export abstract class IExcelTurmaParser {
   abstract parse(buffer: Buffer): Promise<TurmaParsedData[]>;
 }
