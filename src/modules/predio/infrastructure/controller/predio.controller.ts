@@ -7,6 +7,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Patch,
   UseInterceptors,
   UploadedFile,
   BadRequestException,
@@ -25,6 +26,7 @@ import { GetAllPrediosQueryOut } from '../../application/dtos/outputs/get-all-pr
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportSalasCsvUseCase } from '../../application/use-cases/import-salas-csv.use-case';
 import { RemovePredioUseCase } from '../../application/use-cases/remove-predio.use-case';
+import { ChangeStatusSalaUseCase } from '../../application/dtos/command/change-status-sala.use-case';
 
 @Controller('predios')
 export class PredioController {
@@ -37,6 +39,7 @@ export class PredioController {
     private readonly getAllPrediosQueryHandler: GetAllPrediosQueryHandler,
     private readonly importSalasCsvUseCase: ImportSalasCsvUseCase,
     private readonly removePredioUseCase: RemovePredioUseCase,
+    private readonly changeStatusSalaUseCase: ChangeStatusSalaUseCase,
   ) {}
 
   @Get()
@@ -114,5 +117,16 @@ export class PredioController {
       salaId,
       horarioId,
     });
+  }
+  @Patch(':predioId/salas/:salaId/status')
+  async changeStatusSala(
+    @Param('predioId', ParseIntPipe) predioId: number,
+    @Param('salaId', ParseIntPipe) salaId: number,
+    @Body('isActive') isActive: boolean,
+  ): Promise<{ message: string }> {
+    await this.changeStatusSalaUseCase.execute({ predioId, salaId, isActive });
+    return {
+      message: `Sala ${isActive ? 'ativada' : 'desativada'} com sucesso!`,
+    };
   }
 }

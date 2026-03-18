@@ -13,6 +13,7 @@ import { ICsvSalaParser} from './application/services/csv-sala-parser.interface'
 import { NodeCsvSalaParserService} from './infrastructure/services/node-csv-sala-parser.service';
 import { ImportSalasCsvUseCase} from './application/use-cases/import-salas-csv.use-case';
 import { RemovePredioUseCase } from './application/use-cases/remove-predio.use-case';
+import { ChangeStatusSalaUseCase} from './application/dtos/command/change-status-sala.use-case';
 
 @Module({
   imports: [PrismaModule],
@@ -30,6 +31,7 @@ import { RemovePredioUseCase } from './application/use-cases/remove-predio.use-c
     RemoveHorarioSalaUseCase,
     ImportSalasCsvUseCase,
     RemovePredioUseCase,
+    ChangeStatusSalaUseCase,
     {
       provide: IPredioRepository,
       useClass: PrismaPredioRepository,
