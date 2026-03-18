@@ -3,7 +3,7 @@ import { HorarioSalaOutput } from './horario-sala.output';
 
 export class SalaOutput {
   id: number;
-  numeroSala: number;
+  numeroSala: string;
   capacidade: number | null;
   tipoSala: string | null;
   horarios: HorarioSalaOutput[];

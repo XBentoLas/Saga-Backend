@@ -1,6 +1,6 @@
 export interface AddSalaCommand {
   predioId: number;
-  numeroSala: number;
+  numeroSala: string;
   capacidade?: number;
   tipoSala?: string;
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IPredioRepository } from '../../domain/repository/predio.repository.interface';
-import { ICsvSalaParser } from '../services/csv-sala-parser.interface';
+import { ICsvSalaParser } from '../ports/csv-sala-parser.interface';
 import { Predio } from '../../domain/predio';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 

@@ -86,7 +86,15 @@ export class PredioController {
       );
     }
 
-    await this.importSalasCsvUseCase.execute(file.buffer);
+    try {
+      await this.importSalasCsvUseCase.execute(file.buffer);
+    } catch (error) {
+      throw new BadRequestException(
+        error instanceof Error
+          ? error.message
+          : 'Falha ao importar o arquivo CSV. Verifique os dados e tente novamente.'
+      );
+    }
 
     return { message: 'Importação concluída com sucesso!' };
   }

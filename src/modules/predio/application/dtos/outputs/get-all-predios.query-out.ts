@@ -35,7 +35,7 @@ export class HorarioSalaQueryOut {
 
 export class SalaQueryOut {
   id: number;
-  numeroSala: number;
+  numeroSala: string;
   capacidade: number | null;
   tipoSala: string | null;
   horarios: HorarioSalaQueryOut[];

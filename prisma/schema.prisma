@@ -32,7 +32,7 @@ model Predio {
 model Sala {
   id_sala     Int     @id @default(autoincrement())
   id_predio   Int
-  numero_sala Int
+  numero_sala String
   capacidade  Int?
   tipo_sala   String?
   is_active   Boolean @default(true)

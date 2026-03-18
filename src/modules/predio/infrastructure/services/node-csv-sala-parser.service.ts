@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { parse } from 'csv-parse/sync';
-import { ICsvSalaParser } from '../../application/services/csv-sala-parser.interface';
+import { ICsvSalaParser } from '../../application/ports/csv-sala-parser.interface';
 import { SalaImportDto } from '../../application/dtos/command/sala-import.dto';
 
 @Injectable()
@@ -27,19 +27,18 @@ export class NodeCsvSalaParserService implements ICsvSalaParser {
           );
         }
 
-        const numeroSala = Number(record.Numero_Sala);
+        const numeroSalaRaw = String(record.Numero_Sala).trim();
         const capacidade = Number(record.Capacidade);
 
-        // 👇 NOVO: Verifica se realmente digitaram números
-        if (isNaN(numeroSala) || isNaN(capacidade)) {
+        if (isNaN(capacidade)) {
           throw new Error(
-            `Valores numéricos inválidos na linha ${index + 2} (Sala: ${record.Numero_Sala}).`,
+            `Capacidade numérica inválida na linha ${index + 2} (Sala: ${numeroSalaRaw}).`,
           );
         }
 
         return {
           predio: record.Predio,
-          numeroSala: numeroSala,
+          numeroSala: numeroSalaRaw,
           tipoSala: record.Tipo_Sala,
           capacidade: capacidade,
         };

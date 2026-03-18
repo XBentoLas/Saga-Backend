@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { IPredioRepository } from '../../domain/repository/predio.repository.interface';
 import { AddSalaCommand } from '../dtos/command/add-sala.command';
 import { PredioOutput } from '../dtos/outputs/predio.output';
@@ -26,13 +26,28 @@ export class AddSalaUseCase {
       );
     }
 
-    predio.adicionarSala(
-      command.numeroSala,
-      command.capacidade,
-      command.tipoSala,
-    );
+    try {
+      predio.adicionarSala(
+        command.numeroSala,
+        command.capacidade,
+        command.tipoSala,
+      );
+    } catch (error) {
+      this.logger.warn({
+        msg: 'Regra de negócio impediu a criação da sala',
+        erroDominio:
+          error instanceof Error ? error.message : 'Erro desconhecido',
+        predioId: command.predioId,
+        numeroSalaTentado: command.numeroSala,
+      });
+
+      throw new BadRequestException(
+        'A letra inicial do número da sala deve corresponder à inicial do prédio selecionado.',
+      );
+    }
 
     await this.predioRepository.save(predio);
+    // ...
 
     return PredioOutput.fromDomain(predio);
   }
