@@ -2,7 +2,7 @@ import { AggregateRoot } from '../../../common/domain/aggregate-root';
 import { AgendamentoId } from './identifier/agendamento-id';
 import { DiaSemana } from './enums';
 import { ProfessorId } from '../../professor/domain/identifier/professor-id';
-///import { TurmaId } from '../../curso/domain/identifier/turma-id';
+import { TurmaId } from '../../turma/domain/identifier/turma-id';
 import { SalaId } from '../../predio/domain/identifier/sala-id';
 
 export interface AgendamentoProps {

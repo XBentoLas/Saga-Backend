@@ -3,9 +3,9 @@ import { PrismaModule } from '../../infrastructure/database/prisma.module';
 import { CursoModule } from '../curso/curso.module';
 import { ITurmaRepository } from './domain/repository/turma.repository.interface';
 import { PrismaTurmaRepository } from './infrastructure/database/prisma.turma.repository';
-import { ICsvTurmaParser } from './application/ports/csv-turma-parser.interface';
-import { NodeCsvTurmaParserService } from './infrastructure/services/node-csv-turma-parser.service';
-import { ImportTurmaCsvUseCase } from './application/use-cases/import-turma-csv.use-case';
+import { IExcelTurmaParser } from './application/ports/excel-turma-parser.interface';
+import { NodeExcelTurmaParserService } from './infrastructure/services/node-excel-turma-parser.service';
+import { ImportTurmaExcelUseCase } from './application/use-cases/import-turma-excel.use-case';
 import { DeleteTurmaUseCase } from './application/use-cases/delete-turma.use-case';
 import { TurmaController } from './infrastructure/controller/turma.controller';
 
@@ -18,10 +18,10 @@ import { TurmaController } from './infrastructure/controller/turma.controller';
       useClass: PrismaTurmaRepository,
     },
     {
-      provide: ICsvTurmaParser,
-      useClass: NodeCsvTurmaParserService,
+      provide: IExcelTurmaParser,
+      useClass: NodeExcelTurmaParserService,
     },
-    ImportTurmaCsvUseCase,
+    ImportTurmaExcelUseCase,
     DeleteTurmaUseCase,
   ],
   exports: [ITurmaRepository],

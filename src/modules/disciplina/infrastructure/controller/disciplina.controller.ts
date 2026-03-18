@@ -9,33 +9,38 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ImportDisciplinaCsvUseCase } from '../../application/use-cases/import-disciplina-csv.use-case';
+import { ImportDisciplinaExcelUseCase } from '../../application/use-cases/import-disciplina-excel.use-case';
 import { DeleteDisciplinaUseCase } from '../../application/use-cases/delete-disciplina.use-case';
 
 @Controller('disciplinas')
 export class DisciplinaController {
   constructor(
-    private readonly importCsvUseCase: ImportDisciplinaCsvUseCase,
+    private readonly importExcelUseCase: ImportDisciplinaExcelUseCase,
     private readonly deleteUseCase: DeleteDisciplinaUseCase,
   ) {}
 
-  @Post('importar-csv')
+  @Post('importar-excel')
   @UseInterceptors(FileInterceptor('file'))
-  async importarCsv(
+  async importarExcel(
     @UploadedFile() file: Express.Multer.File,
   ): Promise<{ message: string }> {
     if (!file) {
-      throw new BadRequestException('Arquivo CSV não enviado.');
+      throw new BadRequestException('Arquivo Excel não enviado.');
     }
 
-    if (!file.originalname.endsWith('.csv') && file.mimetype !== 'text/csv') {
+    const isExcel =
+      file.mimetype ===
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      file.originalname.endsWith('.xlsx');
+
+    if (!isExcel) {
       throw new BadRequestException(
-        'Formato inválido. O arquivo deve ser um CSV (.csv).',
+        'Formato inválido. O arquivo deve ser um Excel (.xlsx).',
       );
     }
 
     try {
-      await this.importCsvUseCase.execute({ fileBuffer: file.buffer });
+      await this.importExcelUseCase.execute({ fileBuffer: file.buffer });
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new BadRequestException(error.message);

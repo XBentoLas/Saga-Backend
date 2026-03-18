@@ -8,6 +8,7 @@ export abstract class ICursoRepository {
 
   abstract findByCodigo(codigo: string): Promise<Curso | null>;
 
-  // Opcional: Listar todos
   abstract findAll(): Promise<Curso[]>;
+
+  abstract delete(id: CursoId): Promise<void>;
 }

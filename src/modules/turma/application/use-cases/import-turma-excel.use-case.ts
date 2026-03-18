@@ -1,28 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { ITurmaRepository } from '../../domain/repository/turma.repository.interface';
 import { ICursoRepository } from '../../../curso/domain/repository/curso.repository.interface';
-import { ICsvTurmaParser } from '../ports/csv-turma-parser.interface';
-import { ImportTurmaCsvCommand } from '../dtos/command/import-turma-csv.command';
+import { IExcelTurmaParser } from '../ports/excel-turma-parser.interface';
+import { ImportTurmaExcelCommand } from '../dtos/command/import-turma-excel.command';
 import { Turma } from '../../domain/turma';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 
 @Injectable()
-export class ImportTurmaCsvUseCase {
+export class ImportTurmaExcelUseCase {
   constructor(
     private readonly turmaRepository: ITurmaRepository,
     private readonly cursoRepository: ICursoRepository,
-    private readonly csvParser: ICsvTurmaParser,
-    @InjectPinoLogger(ImportTurmaCsvUseCase.name)
+    private readonly excelParser: IExcelTurmaParser,
+    @InjectPinoLogger(ImportTurmaExcelUseCase.name)
     private readonly logger: PinoLogger,
   ) {}
 
-  async execute(command: ImportTurmaCsvCommand): Promise<void> {
+  async execute(command: ImportTurmaExcelCommand): Promise<void> {
     this.logger.info({
-      msg: 'Iniciando importação de Turmas via CSV da TOTVS',
+      msg: 'Iniciando importação de Turmas via Excel da TOTVS',
     });
 
     try {
-      const turmasData = await this.csvParser.parse(command.fileBuffer);
+      const turmasData = await this.excelParser.parse(command.fileBuffer);
 
       let inseridas = 0;
       let atualizadas = 0;
