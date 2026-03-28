@@ -7,11 +7,21 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  HttpCode,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { ImportTurmaExcelUseCase } from '../../application/use-cases/import-turma-excel.use-case';
 import { DeleteTurmaUseCase } from '../../application/use-cases/delete-turma.use-case';
 
+@ApiTags('Turmas')
 @Controller('turmas')
 export class TurmaController {
   constructor(
@@ -21,6 +31,27 @@ export class TurmaController {
 
   @Post('importar-excel')
   @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Importa turmas a partir de uma planilha Excel' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Planilha Excel (.xlsx) com os dados das turmas',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'O arquivo .xlsx a ser importado.',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Turmas importadas com sucesso!' })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Requisição inválida. Pode ser por arquivo não enviado, formato inválido ou dados incorretos na planilha.',
+  })
   async importarExcel(
     @UploadedFile() file: Express.Multer.File,
   ): Promise<{ message: string }> {
@@ -52,6 +83,16 @@ export class TurmaController {
   }
 
   @Delete(':id')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Remove uma turma' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da turma a ser removida',
+    type: 'integer',
+    example: 1,
+  })
+  @ApiResponse({ status: 200, description: 'Turma removida com sucesso!' })
+  @ApiResponse({ status: 404, description: 'Turma não encontrada.' })
   async deleteTurma(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ message: string }> {

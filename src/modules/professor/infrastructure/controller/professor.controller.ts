@@ -9,13 +9,23 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  HttpCode,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { GenerateAvailabilityTemplateUseCase } from '../../application/use-cases/generate-availability-template.use-case';
 import { ImportProfessorExcelUseCase } from '../../application/use-cases/import-professor-excel.use-case';
 import { DeleteProfessorUseCase } from '../../application/use-cases/delete-professor.use-case';
 
+@ApiTags('Professores')
 @Controller('professores')
 export class ProfessorController {
   constructor(
@@ -25,6 +35,21 @@ export class ProfessorController {
   ) {}
 
   @Get('template-disponibilidade')
+  @ApiOperation({
+    summary: 'Baixa o template de planilha para importação de disponibilidade',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Template da planilha de disponibilidade retornado com sucesso.',
+    headers: {
+      'Content-Type': {
+        description: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      },
+      'Content-Disposition': {
+        description: 'attachment; filename="Template_Disponibilidade.xlsx"',
+      },
+    },
+  })
   async downloadTemplate(@Res() res: Response) {
     const buffer = await this.generateTemplateUseCase.execute();
 
@@ -41,6 +66,30 @@ export class ProfessorController {
 
   @Post('importar-disponibilidade')
   @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Importa a disponibilidade de um professor via planilha Excel' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Planilha Excel (.xlsx) com a disponibilidade do professor',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'O arquivo .xlsx a ser importado.',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Disponibilidade do professor importada com sucesso!',
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Requisição inválida. Pode ser por arquivo não enviado, formato inválido ou dados incorretos na planilha.',
+  })
   async importarExcel(
     @UploadedFile() file: Express.Multer.File,
   ): Promise<{ message: string }> {
@@ -74,7 +123,21 @@ export class ProfessorController {
 
     return { message: 'Disponibilidade do professor importada com sucesso!' };
   }
+
   @Delete(':id')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Remove um professor e sua disponibilidade' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID do professor a ser removido',
+    type: 'integer',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Professor removido com sucesso!',
+  })
+  @ApiResponse({ status: 404, description: 'Professor não encontrado.' })
   async deleteProfessor(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ message: string }> {
