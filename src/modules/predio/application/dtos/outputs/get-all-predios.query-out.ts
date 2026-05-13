@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client';
+import { ApiProperty } from '@nestjs/swagger';
 
 export const getAllPrediosInclude = {
   salas: {
@@ -16,10 +17,19 @@ type SalaPayload = PredioWithRelationsPayload['salas'][number];
 type HorarioPayload = SalaPayload['horarios'][number];
 
 export class HorarioSalaQueryOut {
+  @ApiProperty({ example: 1 })
   id: number;
+
+  @ApiProperty({ example: 'SEGUNDA' })
   diaSemana: string;
+
+  @ApiProperty({ example: 'MATUTINO' })
   turno: string;
+
+  @ApiProperty({ example: '2024-01-01T08:00:00.000Z' })
   horaInicio: string;
+
+  @ApiProperty({ example: '2024-01-01T12:00:00.000Z' })
   horaFim: string;
 
   static fromPrisma(this: void, horario: HorarioPayload): HorarioSalaQueryOut {
@@ -34,10 +44,19 @@ export class HorarioSalaQueryOut {
 }
 
 export class SalaQueryOut {
+  @ApiProperty({ example: 1 })
   id: number;
+
+  @ApiProperty({ example: 'O-221' })
   numeroSala: string;
+
+  @ApiProperty({ example: 40, nullable: true })
   capacidade: number | null;
+
+  @ApiProperty({ example: 'Laboratório', nullable: true })
   tipoSala: string | null;
+
+  @ApiProperty({ type: () => [HorarioSalaQueryOut] })
   horarios: HorarioSalaQueryOut[];
 
   static fromPrisma(this: void, sala: SalaPayload): SalaQueryOut {
@@ -52,8 +71,13 @@ export class SalaQueryOut {
 }
 
 export class GetAllPrediosQueryOut {
+  @ApiProperty({ example: 1 })
   id: number;
+
+  @ApiProperty({ example: 'Delta' })
   nome: string;
+
+  @ApiProperty({ type: () => [SalaQueryOut] })
   salas: SalaQueryOut[];
 
   static fromPrisma(

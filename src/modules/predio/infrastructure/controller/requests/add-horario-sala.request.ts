@@ -1,5 +1,6 @@
 import { IsDateString, IsNotEmpty, IsString, IsIn } from 'class-validator';
 import { AddHorarioSalaCommand } from '../../../application/dtos/command/add-horario-sala.command';
+import { ApiProperty } from '@nestjs/swagger';
 
 const DIAS_VALIDOS = [
   'SEGUNDA',
@@ -13,6 +14,12 @@ const DIAS_VALIDOS = [
 const TURNOS_VALIDOS = ['MATUTINO', 'VESPERTINO', 'NOTURNO'];
 
 export class AddHorarioSalaRequest {
+  @ApiProperty({
+    example: 'SEGUNDA',
+    description: 'Dia da semana',
+    enum: DIAS_VALIDOS,
+    required: true,
+  })
   @IsNotEmpty()
   @IsString()
   @IsIn(DIAS_VALIDOS, {
@@ -21,6 +28,12 @@ export class AddHorarioSalaRequest {
   })
   diaSemana: string;
 
+  @ApiProperty({
+    example: 'MATUTINO',
+    description: 'Turno do horário',
+    enum: TURNOS_VALIDOS,
+    required: true,
+  })
   @IsNotEmpty()
   @IsString()
   @IsIn(TURNOS_VALIDOS, {
@@ -28,6 +41,11 @@ export class AddHorarioSalaRequest {
   })
   turno: string;
 
+  @ApiProperty({
+    example: '2024-01-01T08:00:00.000Z',
+    description: 'Hora de início do horário (ISO 8601)',
+    required: true,
+  })
   @IsNotEmpty()
   @IsDateString(
     {},
@@ -35,6 +53,11 @@ export class AddHorarioSalaRequest {
   )
   horaInicio: string;
 
+  @ApiProperty({
+    example: '2024-01-01T12:00:00.000Z',
+    description: 'Hora de fim do horário (ISO 8601)',
+    required: true,
+  })
   @IsNotEmpty()
   @IsDateString(
     {},

@@ -7,12 +7,21 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  HttpCode,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { ImportCursoExcelUseCase } from '../../application/use-cases/import-curso-excel.use-case';
 import { DeleteCursoUseCase } from '../../application/use-cases/delete-curso.use-case';
 
-
+@ApiTags('Cursos')
 @Controller('cursos')
 export class CursoController {
   constructor(
@@ -22,6 +31,27 @@ export class CursoController {
 
   @Post('importar-excel')
   @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Importa cursos a partir de uma planilha Excel' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Planilha Excel (.xlsx) com os dados dos cursos',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'O arquivo .xlsx a ser importado.',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Cursos importados com sucesso!' })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Requisição inválida. Pode ser por arquivo não enviado, formato inválido ou dados incorretos na planilha.',
+  })
   async importarExcel(
     @UploadedFile() file: Express.Multer.File,
   ): Promise<{ message: string }> {
@@ -53,6 +83,16 @@ export class CursoController {
   }
 
   @Delete(':id')
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Remove um curso' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID do curso a ser removido',
+    type: 'integer',
+    example: 1,
+  })
+  @ApiResponse({ status: 200, description: 'Curso removido com sucesso!' })
+  @ApiResponse({ status: 404, description: 'Curso não encontrado.' })
   async deleteCurso(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<{ message: string }> {
