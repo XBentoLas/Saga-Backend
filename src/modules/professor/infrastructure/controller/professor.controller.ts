@@ -24,6 +24,7 @@ import {
 import { GenerateAvailabilityTemplateUseCase } from '../../application/use-cases/generate-availability-template.use-case';
 import { ImportProfessorExcelUseCase } from '../../application/use-cases/import-professor-excel.use-case';
 import { DeleteProfessorUseCase } from '../../application/use-cases/delete-professor.use-case';
+import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 
 @ApiTags('Professores')
 @Controller('professores')
@@ -32,7 +33,18 @@ export class ProfessorController {
     private readonly generateTemplateUseCase: GenerateAvailabilityTemplateUseCase,
     private readonly importProfessorExcelUseCase: ImportProfessorExcelUseCase,
     private readonly deleteProfessorUseCase: DeleteProfessorUseCase,
+    private readonly prisma: PrismaService,
   ) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Lista todos os professores' })
+  @ApiResponse({ status: 200, description: 'Professores listados com sucesso.' })
+  async getAll() {
+    return this.prisma.professor.findMany({
+      orderBy: { nome: 'asc' },
+      include: { _count: { select: { disciplinas: true, horarios: true } } },
+    });
+  }
 
   @Get('template-disponibilidade')
   @ApiOperation({

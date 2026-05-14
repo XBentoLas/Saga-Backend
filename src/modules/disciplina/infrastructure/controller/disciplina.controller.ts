@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Delete,
   Param,
@@ -20,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { ImportDisciplinaExcelUseCase } from '../../application/use-cases/import-disciplina-excel.use-case';
 import { DeleteDisciplinaUseCase } from '../../application/use-cases/delete-disciplina.use-case';
+import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 
 @ApiTags('Disciplinas')
 @Controller('disciplinas')
@@ -27,7 +29,17 @@ export class DisciplinaController {
   constructor(
     private readonly importExcelUseCase: ImportDisciplinaExcelUseCase,
     private readonly deleteUseCase: DeleteDisciplinaUseCase,
+    private readonly prisma: PrismaService,
   ) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Lista todas as disciplinas' })
+  @ApiResponse({ status: 200, description: 'Disciplinas listadas com sucesso.' })
+  async getAll() {
+    return this.prisma.disciplina.findMany({
+      orderBy: { nome: 'asc' },
+    });
+  }
 
   @Post('importar-excel')
   @UseInterceptors(FileInterceptor('file'))
