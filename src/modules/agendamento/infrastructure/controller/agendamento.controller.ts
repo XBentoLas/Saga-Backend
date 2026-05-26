@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Query, Body, Param, ParseIntPipe, HttpCode, ConflictException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Query, Body, Param, ParseIntPipe, HttpCode, ConflictException, NotFoundException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { PrismaService } from '../../../../infrastructure/database/prisma.service';
 import { CreateAgendamentoDto } from '../../application/dto/create-agendamento.dto';
@@ -126,6 +126,67 @@ export class AgendamentoController {
 
     await this.prisma.agendamento.delete({
       where: { id_agendamento: id },
+    });
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Edita um agendamento existente com verificação de conflitos' })
+  @ApiResponse({ status: 200, description: 'Agendamento atualizado com sucesso.' })
+  @ApiResponse({ status: 404, description: 'Agendamento não encontrado.' })
+  @ApiResponse({ status: 409, description: 'Conflito de horário detectado.' })
+  async update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateAgendamentoDto) {
+    const existing = await this.prisma.agendamento.findUnique({
+      where: { id_agendamento: id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Agendamento com ID ${id} não encontrado.`);
+    }
+
+    const inicioDate = new Date(`1970-01-01T${dto.hora_inicio}:00.000Z`);
+    const fimDate = new Date(`1970-01-01T${dto.hora_fim}:00.000Z`);
+
+    const timeOverlap = {
+      AND: [
+        { hora_inicio: { lt: fimDate } },
+        { hora_fim: { gt: inicioDate } },
+      ],
+    };
+
+    const excludeSelf = { id_agendamento: { not: id } };
+
+    const salaConflict = await this.prisma.agendamento.findFirst({
+      where: { id_sala: dto.id_sala, dia_semana: dto.dia_semana as any, ...excludeSelf, ...timeOverlap },
+    });
+    if (salaConflict) {
+      throw new ConflictException('Conflito: a sala já está ocupada neste dia e horário.');
+    }
+
+    const professorConflict = await this.prisma.agendamento.findFirst({
+      where: { id_professor: dto.id_professor, dia_semana: dto.dia_semana as any, ...excludeSelf, ...timeOverlap },
+    });
+    if (professorConflict) {
+      throw new ConflictException('Conflito: o professor já possui aula neste dia e horário.');
+    }
+
+    const turmaConflict = await this.prisma.agendamento.findFirst({
+      where: { id_turma: dto.id_turma, dia_semana: dto.dia_semana as any, ...excludeSelf, ...timeOverlap },
+    });
+    if (turmaConflict) {
+      throw new ConflictException('Conflito: a turma já possui aula neste dia e horário.');
+    }
+
+    return this.prisma.agendamento.update({
+      where: { id_agendamento: id },
+      data: {
+        id_professor: dto.id_professor,
+        id_turma: dto.id_turma,
+        id_sala: dto.id_sala,
+        dia_semana: dto.dia_semana as any,
+        hora_inicio: inicioDate,
+        hora_fim: fimDate,
+      },
+      include: AGENDAMENTO_INCLUDE,
     });
   }
 }
